@@ -17,21 +17,24 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn install -Dmaven.test.skip=true'
+                sh 'mvn clean install'
             }
         }
 		
-        stage('Unit Tests') {
+        stage('Run Tests') {
             steps {
-                sh 'mvn compiler:testCompile'
-                sh 'mvn surefire:test'
+                sh 'mvn test'
             }
         }
-
+        stage('Package as WAR') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+	    
         stage('Deployment') {
             steps {
-                sh 'sshpass -p "staragile" scp target/gamutkart.war staragile@172.31.35.187:/home/staragile/apache-tomcat-9.0.85/webapps'
-		sh 'sshpass -p "staragile" ssh staragile@172.31.35.187 "/home/staragile/apache-tomcat-9.0.85/bin/startup.sh"'
+                sh 'sshpass -p "staragile" scp target/gamutkart.war staragile@172.31.35.187:/home/staragile/apache-tomcat-9.0.85/webapps
             }
         }
     }
