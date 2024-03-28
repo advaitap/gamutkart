@@ -1,38 +1,39 @@
 pipeline {
     agent any
 
-//	tools {
-//		jdk 'jdk8'
-//	}
-//	environment {
-//		M2_INSTALL = "/usr/bin/mvn"
-//	}
-
     stages {
         stage('Clone-Repo') {
 	    	steps {
 	        	checkout scm
 	    	}
         }
+	stage('Build') {
+		steps {
+			sh 'mvn install'
+		}
+	}	
+ 
+	stage ('Compile'){
+	        steps {
+			sh 'mvn clean compile'
+                }
+	}
 
-        stage('Build') {
-            steps {
-                sh 'mvn install -Dmaven.test.skip=true'
-            }
-        }
-		
-        stage('Unit Tests') {
-            steps {
-                sh 'mvn compiler:testCompile'
-                sh 'mvn surefire:test'
-            }
-        }
+	stage('Run Tests') {
+	    steps {
+	       sh 'mvn test'
+	    }
+	}
 
-        stage('Deployment') {
+        stage('Package as WAR') {
             steps {
-                sh 'sshpass -p "staragile" scp target/gamutkart.war staragile@172.31.35.187:/home/staragile/apache-tomcat-9.0.85/webapps"
-		sh 'sshpass -p "staragile" ssh staragile@172.31.35.187 "/home/staragile/apache-tomcat-9.0.85/bin/startup.sh"'
+                sh 'mvn package'
             }
         }
+	stage('Deployment') {
+	   steps {
+		sh 'sshpass -p staragile scp target/gamutkart.war staragile@172.31.35.187:/home/staragile/apache-tomcat-9.0.85/webapps/'
+	}
     }
-
+}
+}
